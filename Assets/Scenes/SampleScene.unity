@@ -205,13 +205,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.034418575, y: 0.9201354, z: -0.0830938, w: -0.38113227}
-  m_LocalPosition: {x: 2.132, y: 1.613, z: 2.182}
+  m_LocalRotation: {x: -0, y: 0.9444235, z: -0, w: -0.3287313}
+  m_LocalPosition: {x: 1.524, y: 0.834, z: 2.269}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 10.32, y: 225, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 218.384, z: 0}
 --- !u!114 &330585547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -379,6 +379,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speedX: 1
   speedY: 1
+  speedZ: 1
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -687,6 +688,8 @@ MonoBehaviour:
   mainCubePrefab: {fileID: 4834969558070439174, guid: 2cc285103b838bd42b9235ab926314cd, type: 3}
   nextCubePrefab: {fileID: 8214610333451990327, guid: 6cbff23c6bd27a74bb8e3fe100c439c0, type: 3}
   spawnPointX: {fileID: 1049254547}
+  spawnPointZ: {fileID: 1357301648}
+  _spawnHeightY: {x: 0, y: 0, z: 0.1}
 --- !u!4 &1950513275
 Transform:
   m_ObjectHideFlags: 0
