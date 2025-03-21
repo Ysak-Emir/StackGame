@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using Unity.VisualScripting;
 using UnityEngine;
+using Random = System.Random;
 
 public class GameManager : MonoBehaviour
 {
@@ -15,11 +16,13 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] public GameObject spawnPointX;
     [SerializeField] public GameObject spawnPointZ;
+    [SerializeField] public GameObject upPointY;
     public Vector3 _spawnHeightY = new Vector3(0,0,0.1f);
     
 
     private GameObject _createdStartNextCube;
     private GameObject _createdStartMainCube;
+
 
 
     private void Awake()
@@ -45,14 +48,7 @@ public class GameManager : MonoBehaviour
 
         Debug.Log($"{mainCubePrefab.name} префаб найден!");
 
-        // _createdStartMainCube = CreateCube(mainCubePrefab, new Vector3(0, 0, 0));
-        //
-        // _createdStartNextCube = CreateCube(nextCubePrefab, new Vector3(spawnPointX.transform.position.x, 0.1f, 0));
-        // _createdStartNextCube = CreateCube(nextCubePrefab, new Vector3(0, 0.1f, spawnPointZ.transform.position.z));
-        // spawnPointZ.transform.position += new Vector3(0, 0.1f, 0);
-        //
-        // MoveCube moveCubeNext = _createdStartNextCube.AddComponent<MoveCube>();
-        // moveCubeNext.StartMovingZ();
+        
     }
 
     public GameObject CreateCube(GameObject cubePrefab, Vector3 position)
