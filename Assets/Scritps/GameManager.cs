@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using Scritps;
 using Unity.VisualScripting;
 using UnityEngine;
 using Random = System.Random;
@@ -8,8 +9,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     private float score = 0;
-
-
+    
     [SerializeField] private GameObject mainCubePrefab;
 
     [SerializeField] private GameObject nextCubePrefab;
@@ -17,13 +17,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] public GameObject spawnPointX;
     [SerializeField] public GameObject spawnPointZ;
     [SerializeField] public GameObject upPointY;
-    public Vector3 _spawnHeightY = new Vector3(0,0,0.1f);
     
-
+    [SerializeField] [Range(0, 3)] public float speedX = 1f;
+    [SerializeField] [Range(0, 3)] public float speedY = 1f;
+    [SerializeField] [Range(0, 3)] public float speedZ = 1f;
+    
     private GameObject _createdStartNextCube;
     private GameObject _createdStartMainCube;
 
-
+    
 
     private void Awake()
     {
@@ -59,6 +61,11 @@ public class GameManager : MonoBehaviour
         return cube;
     }
 
+    private void IsClick()
+    {
+        
+    }
+
     public GameObject CreatedNextCube
     {
         get => _createdStartNextCube;
@@ -83,9 +90,9 @@ public class GameManager : MonoBehaviour
         set => mainCubePrefab = value;
     }
 
-    // public float SpawnHeightY
-    // {
-    //     get => _spawnHeightY;
-    //     set => _spawnHeightY = value;
-    // }
+    public void GameOver()
+    {
+        CutBlock.Instance._moveCube.StopFullMoving();
+    }
+  
 }

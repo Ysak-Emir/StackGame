@@ -34,50 +34,54 @@ public class CutCube : MonoBehaviour
 
 
     private GameObject cubeNextCheck, cubeMainCheck;
-    public MoveCube _moveCubeDirectionCheck;
-    public string _nextSpawnCube = null;
+    public string _nextSpawnCube = "x";
 
     //CreateNextCube FUNC
     private GameObject cubeNext;
-    
+
     //IsInside FUNC
-    private bool checkPlusX;
-    private bool checkMinusX;
-    private bool checkPlusZ;
-    private bool checkMinusZ;
+    private bool _checkPlusX;
+    private bool _checkMinusX;
+    private bool _checkPlusZ;
+    private bool _checkMinusZ;
+
+    private MoveCube _moveCubeDirectionCheck;
+    
     //----------------------
 
     private void Start()
     {
-        MoveCube moveCube = GetComponent<MoveCube>();
+        
+     
         AddHeightToY();
         GameManager.Instance.CreatedMainCube =
             GameManager.Instance.CreateCube(GameManager.Instance.OriginalMainCubePrefab, Vector3.zero);
-        Random random = new Random();
-        // Vector3[] spawns =
-        // {
-        //     GameManager.Instance.spawnPointX.transform.position, GameManager.Instance.spawnPointZ.transform.position
-        // };
-        // Vector3 randomSpawn = spawns[random.Next(spawns.Length)];
+
+        Vector3 spawnPosition;
+        if (_nextSpawnCube == "x")
+        {
+            spawnPosition = GameManager.Instance.spawnPointX.transform.position;
+        }
+        else
+        {
+            spawnPosition = GameManager.Instance.spawnPointZ.transform.position;
+        }
+        
         GameManager.Instance.CreatedNextCube =
             GameManager.Instance.CreateCube(GameManager.Instance.OriginalNextCubePrefab,
-                GameManager.Instance.spawnPointX.transform.position);
+                spawnPosition);
 
         _moveCubeDirectionCheck = GameManager.Instance.CreatedNextCube.AddComponent<MoveCube>();
 
-        Debug.Log($"pointMainCubePlusX - {pointMainCubeX.PlusX}");
-        Debug.Log($"pointMainCubeMinusX - {pointMainCubeX.MinusX}");
-        Debug.Log("----------------------------");
-        Debug.Log($"pointNextCubePlusX - {pointNextCubeX.PlusX}");
-        Debug.Log($"pointNextCubeMinusX - {pointNextCubeX.MinusX}");
-
-        Debug.Log("=========================================");
-
-        Debug.Log($"pointMainCubePlusZ - {pointMainCubeZ.PlusZ}");
-        Debug.Log($"pointMainCubeMinusZ - {pointMainCubeZ.MinusZ}");
-        Debug.Log("----------------------------");
-        Debug.Log($"pointNextCubePlusZ - {pointNextCubeZ.PlusZ}");
-        Debug.Log($"pointNextCubeMinusZ - {pointNextCubeZ.MinusZ}");
+        if (_nextSpawnCube == "x")
+        {
+            _moveCubeDirectionCheck.StartMovingX();
+        }
+        else
+        {
+            _moveCubeDirectionCheck.StartMovingZ();
+        }
+        
     }
 
     private void Update()
@@ -99,34 +103,28 @@ public class CutCube : MonoBehaviour
             Debug.LogError("Один из кубов (cubeMainCheck или cubeNextCube) не инициализирован!");
             return;
         }
-
+    
         SetCubePoints(ref pointMainCubeX, cubeMainCheck, cubeNextCheck.transform.localScale.x);
         SetCubePoints(ref pointNextCubeX, cubeNextCheck, cubeNextCheck.transform.localScale.x);
 
         SetCubePoints(ref pointMainCubeZ, cubeMainCheck, cubeNextCheck.transform.localScale.z);
         SetCubePoints(ref pointNextCubeZ, cubeNextCheck, cubeNextCheck.transform.localScale.z);
 
-        Debug.Log(_nextSpawnCube);
-
-
-        Debug.Log($"pointMainCubePlusX - {pointMainCubeX.PlusX}");
-        Debug.Log($"pointMainCubeMinusX - {pointMainCubeX.MinusX}");
-        Debug.Log("----------------------------");
-        Debug.Log($"pointNextCubePlusX - {pointNextCubeX.PlusX}");
-        Debug.Log($"pointNextCubeMinusX - {pointNextCubeX.MinusX}");
-
-        Debug.Log("=========================================");
-
-        Debug.Log($"pointMainCubePlusZ - {pointMainCubeZ.PlusZ}");
-        Debug.Log($"pointMainCubeMinusZ - {pointMainCubeZ.MinusZ}");
-        Debug.Log("----------------------------");
-        Debug.Log($"pointNextCubePlusZ - {pointNextCubeZ.PlusZ}");
-        Debug.Log($"pointNextCubeMinusZ - {pointNextCubeZ.MinusZ}");
+        Debug.Log("Текущая ось: " + _nextSpawnCube);
         
-
-        if (IsInsideCube())
+        bool insideResult = IsInsideCube();
+        
+        if (insideResult)
         {
-            Cut("x");
+            Cut(_nextSpawnCube);
+
+            _nextSpawnCube = _nextSpawnCube == "x" ? "z" : "x";
+            Debug.Log("Следующая ось: " + _nextSpawnCube);
+        }
+        else
+        {
+            Debug.LogWarning("GameOver: Кубы не пересекаются!");
+            GameOver();
         }
     }
 
@@ -150,19 +148,19 @@ public class CutCube : MonoBehaviour
 
     private bool IsInsideCube()
     {
-        checkPlusX = (pointNextCubeX.PlusX.x >= pointMainCubeX.MinusX.x &&
-                     pointNextCubeX.PlusX.x <= pointMainCubeX.PlusX.x);
-        checkMinusX = (pointNextCubeX.MinusX.x >= pointMainCubeX.MinusX.x &&
-                      pointNextCubeX.MinusX.x <= pointMainCubeX.PlusX.x);
-        
-        checkPlusZ = (pointNextCubeZ.PlusZ.z >= pointMainCubeZ.MinusZ.z &&
+        _checkPlusX = (pointNextCubeX.PlusX.x >= pointMainCubeX.MinusX.x &&
+                      pointNextCubeX.PlusX.x <= pointMainCubeX.PlusX.x);
+        _checkMinusX = (pointNextCubeX.MinusX.x >= pointMainCubeX.MinusX.x &&
+                       pointNextCubeX.MinusX.x <= pointMainCubeX.PlusX.x);
+
+        _checkPlusZ = (pointNextCubeZ.PlusZ.z >= pointMainCubeZ.MinusZ.z &&
                       pointNextCubeZ.PlusZ.z <= pointMainCubeZ.PlusZ.z);
-        checkMinusZ = (pointNextCubeZ.MinusZ.z >= pointMainCubeZ.MinusZ.z &&
+        _checkMinusZ = (pointNextCubeZ.MinusZ.z >= pointMainCubeZ.MinusZ.z &&
                        pointNextCubeZ.MinusZ.z <= pointMainCubeZ.PlusZ.z);
 
-        bool inside = (checkPlusX || checkMinusX) || (checkPlusZ || checkMinusZ);
+        bool inside = (_checkPlusX || _checkMinusX) || (_checkPlusZ || _checkMinusZ);
 
-        Debug.Log($"IsInsideCube: plus - {checkPlusX}, minus - {checkMinusX}, inside - {inside}");
+        Debug.Log($"IsInsideCube: plus - {_checkPlusX}, minus - {_checkMinusX}, inside - {inside}");
 
         return inside;
     }
@@ -190,7 +188,7 @@ public class CutCube : MonoBehaviour
             Debug.LogWarning("CreateNextCube: Параметр AxisForPoints не может быть null или пустым.");
             return;
         }
-        
+
         cubeNext = GameManager.Instance.CreatedNextCube;
 
         if (!cubeNext)
@@ -198,43 +196,52 @@ public class CutCube : MonoBehaviour
             Debug.LogWarning("CreateNextCube: GameManager.Instance.CreatedNextCube равен null.");
             return;
         }
-        
+
         if (AxisForPoints.Equals("x", StringComparison.OrdinalIgnoreCase))
         {
             cubeNext = CreateCube("x");
             
-            if (!cubeNext)
+            if (cubeNext == null)
             {
                 Debug.Log("GameOver: Ошибка при создании куба по оси X.");
+                GameOver();  // Убедитесь, что GameOver вызывается
                 return;
             }
-            
+
             SetNewScaleCube(cubeNext, "x");
             AddHeightToY();
-            
-            
+
+
             if (cubeNext == null)
             {
                 Debug.Log("GameOver: cubeNext равен null после изменений.");
                 return;
             }
-            
-            
+
+
             cubeNext = SetChangesCreateNextCube(cubeNext, "x");
-            
+
             if (cubeNext == null)
             {
                 Debug.Log("GameOver: cubeNext равен null после SetChangesCreateNextCube.");
                 return;
             }
-            
+
             MoveCube moveCubeNext = cubeNext.AddComponent<MoveCube>();
             if (moveCubeNext == null)
             {
                 Debug.LogWarning("CreateNextCube: Не удалось добавить компонент MoveCube.");
                 return;
             }
-            moveCubeNext.StartMovingX();
+
+            if (_nextSpawnCube == "x")
+            {
+                moveCubeNext.StartMovingX();
+            }
+            else
+            {
+                moveCubeNext.StartMovingZ();
+            }
             _moveCubeDirectionCheck = moveCubeNext;
         }
         else if (AxisForPoints.Equals("z", StringComparison.OrdinalIgnoreCase))
@@ -244,12 +251,19 @@ public class CutCube : MonoBehaviour
             AddHeightToY();
             cubeNext = SetChangesCreateNextCube(cubeNext, "z");
             MoveCube moveCubeNext = cubeNext.AddComponent<MoveCube>();
-            // moveCubeNext.StartMovingZ();
-            // _moveCubeDirectionCheck = moveCubeNext;
+            if (_nextSpawnCube == "x")
+            {
+                moveCubeNext.StartMovingX();
+            }
+            else
+            {
+                moveCubeNext.StartMovingZ();
+            }
+            _moveCubeDirectionCheck = moveCubeNext;
         }
         else
         {
-            Debug.Log("Только по осям Z and X");
+            Debug.LogError("Только по осям Z and X");
         }
     }
 
@@ -259,12 +273,12 @@ public class CutCube : MonoBehaviour
         Vector3 fallCubePosition;
         if (AxisForPoints == "x")
         {
-            if (checkPlusX)
+            if (_checkPlusX)
             {
                 fallCubeScale = Mathf.Abs(pointMainCubeX.MinusX.x - pointNextCubeX.MinusX.x);
                 fallCubePosition = (pointMainCubeX.MinusX + pointNextCubeX.MinusX) / 2f;
             }
-            else if (checkMinusX)
+            else if (_checkMinusX)
             {
                 fallCubeScale = Mathf.Abs(pointMainCubeX.PlusX.x - pointNextCubeX.PlusX.x);
                 fallCubePosition = (pointMainCubeX.PlusX + pointNextCubeX.PlusX) / 2f;
@@ -273,6 +287,7 @@ public class CutCube : MonoBehaviour
             {
                 return;
             }
+
             if (fallCubeScale > 0)
             {
                 var cubeFall = Instantiate(GameManager.Instance.OriginalNextCubePrefab, fallCubePosition,
@@ -285,16 +300,15 @@ public class CutCube : MonoBehaviour
                 MoveCube moveCubeFall = cubeFall.AddComponent<MoveCube>();
                 moveCubeFall.StartMovingY();
             }
-
         }
         else
         {
-            if (checkPlusZ)
+            if (_checkPlusZ)
             {
                 fallCubeScale = Mathf.Abs(pointMainCubeZ.MinusZ.z - pointNextCubeZ.MinusZ.z);
                 fallCubePosition = (pointMainCubeZ.MinusZ + pointNextCubeZ.MinusZ) / 2f;
             }
-            else if (checkMinusZ)
+            else if (_checkMinusZ)
             {
                 fallCubeScale = Mathf.Abs(pointMainCubeZ.PlusZ.z - pointNextCubeZ.PlusZ.z);
                 fallCubePosition = (pointMainCubeZ.PlusZ + pointNextCubeZ.PlusZ) / 2f;
@@ -303,9 +317,11 @@ public class CutCube : MonoBehaviour
             {
                 return;
             }
+
             if (fallCubeScale > 0)
             {
-                var cubeFall = Instantiate(GameManager.Instance.OriginalNextCubePrefab, fallCubePosition, Quaternion.identity);
+                var cubeFall = Instantiate(GameManager.Instance.OriginalNextCubePrefab, fallCubePosition,
+                    Quaternion.identity);
 
                 Vector3 newScaleFall = cubeFall.transform.localScale;
                 newScaleFall.z = fallCubeScale;
@@ -316,40 +332,49 @@ public class CutCube : MonoBehaviour
         }
     }
 
-    private  GameObject SetChangesCreateNextCube(GameObject cubeNext, string axis = null)
+    private GameObject SetChangesCreateNextCube(GameObject cubeNext, string axis = null)
     {
-        if (axis == "x")
+        if (axis != "x" && axis != "z")
         {
-            GameManager.Instance.CreatedMainCube = cubeNext;
-            Destroy(GameManager.Instance.CreatedNextCube);
-
-            cubeNext = GameManager.Instance.CreateCube(cubeNext,
-                GameManager.Instance.spawnPointX.transform.position);
-
-            GameManager.Instance.CreatedNextCube = cubeNext;
-
-            return cubeNext;
+            Debug.LogError("В axis в SetChangesCreateNextCube было передано неверное значение!");
+            return null;
         }
 
-        if (axis == "z")
+        GameManager.Instance.CreatedMainCube = cubeNext;
+        Destroy(GameManager.Instance.CreatedNextCube);
+
+        Vector3 spawnPosition;
+        if (_nextSpawnCube == "x")
         {
-            GameManager.Instance.CreatedMainCube = cubeNext;
-            Destroy(GameManager.Instance.CreatedNextCube);
-
-            cubeNext = GameManager.Instance.CreateCube(cubeNext,
-                GameManager.Instance.spawnPointZ.transform.position);
-
-            GameManager.Instance.CreatedNextCube = cubeNext;
-            return cubeNext;
+            spawnPosition = GameManager.Instance.spawnPointX.transform.position;
+        }
+        else
+        {
+            spawnPosition = GameManager.Instance.spawnPointZ.transform.position;
         }
 
-        return null;
+        cubeNext = GameManager.Instance.CreateCube(cubeNext, spawnPosition);
+        GameManager.Instance.CreatedNextCube = cubeNext;
+
+        return cubeNext;
     }
 
     private void GameOver()
     {
-        MoveCube moveCube = cubeNext.AddComponent<MoveCube>();
-        moveCube.StartMovingY();
+        Debug.Log("GAME OVER!");
+
+        if (GameManager.Instance.CreatedNextCube != null)
+        {
+            MoveCube moveCube = GameManager.Instance.CreatedNextCube.GetComponent<MoveCube>();
+            if (moveCube == null)
+            {
+                moveCube = GameManager.Instance.CreatedNextCube.AddComponent<MoveCube>();
+            }
+            moveCube.StartMovingY();
+        }
+    
+        // Дополнительно можно вызвать метод для остановки игры или перезапуска
+        // например: GameManager.Instance.StopGame();
     }
 
 
@@ -359,29 +384,50 @@ public class CutCube : MonoBehaviour
 
         {
             Vector3 nextCubePositionX;
-            if (checkPlusX)
+            if (_checkPlusX)
             {
                 nextCubePositionX = new Vector3((pointNextCubeX.PlusX.x + pointMainCubeX.MinusX.x) / 2f, 0f, 0f);
             }
-            else if (checkMinusX)
+            else if (_checkMinusX)
             {
                 nextCubePositionX = new Vector3((pointNextCubeX.MinusX.x + pointMainCubeX.PlusX.x) / 2f, 0f, 0f);
             }
             else
             {
-                // Если ни одно из условий не выполнено, куб не создаем
                 //GAME OVER
                 GameOver();
                 Debug.LogWarning("CreateCube: точка не находится внутри границ, куб не будет создан.");
-                return null; 
+                return null;
             }
 
             Vector3 position = new Vector3(nextCubePositionX.x, GameManager.Instance.upPointY.transform.position.y, 0);
-            Debug.Log("Создание куба по оси X в первом случае CreateCube()");
             return Instantiate(GameManager.Instance.OriginalNextCubePrefab, position, Quaternion.identity);
         }
-        
-        return GameManager.Instance.OriginalNextCubePrefab;
+
+        if (axis == "z")
+        {
+            Vector3 nextCubePositionZ;
+            if (_checkPlusZ)
+            {
+                nextCubePositionZ = new Vector3(0f, 0f, (pointNextCubeZ.PlusZ.z + pointMainCubeZ.MinusZ.z) / 2f);
+            }
+            else if (_checkMinusZ)
+            {
+                nextCubePositionZ = new Vector3(0f, 0f, (pointNextCubeZ.MinusZ.z + pointMainCubeZ.PlusZ.z) / 2f);
+            }
+            else
+            {
+                GameOver();
+                Debug.LogWarning("CreateCube: точка не находится внутри границ, куб не будет создан.");
+                return null;
+            }
+            
+            Vector3 position = new Vector3(nextCubePositionZ.z, GameManager.Instance.upPointY.transform.position.y, 0);
+            return Instantiate(GameManager.Instance.OriginalNextCubePrefab, position, Quaternion.identity);
+        }
+
+        Debug.LogError("CreateCube: Неизвестная ось");
+        return null;
     }
 
     private void SetNewScaleCube(GameObject cubeNext, string axis)
@@ -398,11 +444,11 @@ public class CutCube : MonoBehaviour
         {
             float nextCubeScale = 0f;
 
-            if (checkPlusX)
+            if (_checkPlusX)
             {
                 nextCubeScale = Mathf.Abs(pointNextCubeX.PlusX.x - pointMainCubeX.MinusX.x);
             }
-            else if (checkMinusX)
+            else if (_checkMinusX)
             {
                 nextCubeScale = Mathf.Abs(pointNextCubeX.MinusX.x - pointMainCubeX.PlusX.x);
             }
@@ -419,11 +465,11 @@ public class CutCube : MonoBehaviour
         {
             float nextCubeScale = 0f;
 
-            if (checkPlusZ)
+            if (_checkPlusZ)
             {
                 nextCubeScale = Mathf.Abs(pointNextCubeZ.PlusZ.z - pointMainCubeZ.MinusZ.z);
             }
-            else if (checkMinusZ)
+            else if (_checkMinusZ)
             {
                 nextCubeScale = Mathf.Abs(pointNextCubeZ.MinusZ.z - pointMainCubeZ.PlusZ.z);
             }
@@ -444,36 +490,4 @@ public class CutCube : MonoBehaviour
 
         cubeNext.transform.localScale = newScale;
     }
-
-
-    // else if (axis == "z" && IsInsideCube())
-
-    // {
-
-    //     nextCubeScale = Mathf.Abs(pointNextCubeZ.PlusZ.z - pointMainCubeZ.MinusZ.z);
-
-    //     newScale = cubeNext.transform.localScale;
-
-    //     newScale.z = nextCubeScale;
-
-    //     cubeNext.transform.localScale = newScale;
-
-    //     Debug.Log("SetNewScale в первом случае для оси Z");
-
-    // }
-
-    // else if (axis == "z")
-
-    // {
-
-    //     nextCubeScale = Mathf.Abs(pointNextCubeZ.MinusZ.z - pointMainCubeZ.PlusZ.z);
-
-    //     newScale = cubeNext.transform.localScale;
-
-    //     newScale.z = nextCubeScale;
-
-    //     cubeNext.transform.localScale = newScale;
-
-
-    //     Debug.Log("SetNewScale во втором случае для оси Z");
 }

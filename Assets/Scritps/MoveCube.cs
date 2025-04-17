@@ -3,9 +3,11 @@ using UnityEngine;
 
 public class MoveCube : MonoBehaviour
 {
-    [SerializeField] [Range(0, 3)] private float speedX = 1f;
-    [SerializeField] [Range(0, 3)] private float speedY = 1f;
-    [SerializeField] [Range(0, 3)] private float speedZ = 1f;
+    public MoveCube Instance { get; private set; }
+    
+    [SerializeField] [Range(0, 3)] public float speedX = 1f;
+    [SerializeField] [Range(0, 3)] public float speedY = 1f;
+    [SerializeField] [Range(0, 3)] public float speedZ = 1f;
     private Vector2 _directionX;
     private Vector2 _directionY;
     private Vector3 _directionZ;
@@ -88,4 +90,11 @@ public class MoveCube : MonoBehaviour
     {
         transform.Translate(_directionZ * (speedZ * Time.deltaTime));
     }
+
+    public void StopFullMoving()
+    {
+        _isMovingX = false;
+        _isMovingZ = false;
+    }
+    
 }
