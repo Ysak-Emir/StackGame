@@ -149,8 +149,9 @@ public class GameManager : MonoBehaviour
     public void GameOver()
     {
         Destroy(_cubeFactory.currentCube.GetComponent<MoveCube>());
-        
-        
+        FindAnyObjectByType<PlayerInputController>().enabled = false;
+        _cubeFactory.currentCube.AddComponent<Rigidbody>().useGravity = enabled;
+
     }
   
 }
