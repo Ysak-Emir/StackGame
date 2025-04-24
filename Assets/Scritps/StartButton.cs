@@ -14,5 +14,8 @@ public class StartButton : MonoBehaviour
     private void LoadScene()
     {
         SceneManager.LoadScene(_sceneName);
+        // if(GameManager.Instance.gameObject)
+        //     Destroy(GameManager.Instance.gameObject);
+        // SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }

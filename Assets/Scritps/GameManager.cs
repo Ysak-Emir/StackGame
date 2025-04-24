@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Scritps;
+using TMPro;
 using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -17,22 +18,21 @@ public class GameManager : MonoBehaviour
     [SerializeField] public GameObject spawnPointZ;
     [SerializeField] public GameObject upPointY;
     
-    [SerializeField] [Range(0, 3)] public float speedX = 1f;
-    [SerializeField] [Range(0, 3)] public float speedY = 1f;
-    [SerializeField] [Range(0, 3)] public float speedZ = 1f;
-    private float score = 0;
+    [SerializeField] [Range(0, 10)] public float speedX = 1f;
+    [SerializeField] [Range(0, 10)] public float speedY = 1f;
+    [SerializeField] [Range(0, 10)] public float speedZ = 1f;
     [SerializeField] private GameObject mainCubePrefab;
     [SerializeField] private GameObject nextCubePrefab;
-
 
     public MoveDirection currentMoving;
     public Queue<MoveDirection> moveSequence;
 
-
     [SerializeField] private CutBlock _cutBlock;
     [SerializeField] private MoveCube moveCube;
     [SerializeField] private CubeFactory _cubeFactory;
-
+    [SerializeField] private GameObject gameOverMenu;
+    [SerializeField] public TextMeshProUGUI scoreText;
+    private int score = 0;
     // private void test()
     // {
     //     _cutBlock.moveCube.StopFullMoving();
@@ -49,7 +49,15 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        
+        // RaiseY();
+    }
+
+    private void Update()
+    {
+        if (_cubeFactory.currentCube.transform.position.x > 4 || _cubeFactory.currentCube.transform.position.z > 4)
+        {
+            GameOver();
+        }
     }
 
     private void Start()
@@ -89,6 +97,7 @@ public class GameManager : MonoBehaviour
         moveSequence.Enqueue(MoveDirection.Z);
         moveSequence.Enqueue(MoveDirection.X);
         
+
         if (_cubeFactory.randomSpawn == _cubeFactory.randomSpawnX)
         {
             // Debug.Log("START MOVING X");
@@ -106,26 +115,30 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("AZAZAZA");
         }
-
     }
     
     public void RaiseY(float amount = 0.1f)
     {
         Vector3 delta = new Vector3(0, amount, 0);
 
-        if (triggerDetectCube != null) 
-            triggerDetectCube.transform.position += delta;
-        if (spawnPointX != null) 
+        // if (triggerDetectCube != null) 
+        //     triggerDetectCube.transform.position += delta;
+        // if (spawnPointX != null) 
             spawnPointX.transform.position += delta;
-        if (spawnPointZ != null) 
+        // if (spawnPointZ != null) 
             spawnPointZ.transform.position += delta;
-        if (upPointY != null) 
+        // if (upPointY != null) 
             upPointY.transform.position += delta;
         _cubeFactory.randomSpawnX += delta;
         _cubeFactory.randomSpawnZ += delta;
         
     }
 
+    public void AddPoints(int point)
+    {
+        score += point;
+        scoreText.text = score.ToString();
+    }
 
     public MoveDirection GetNextDirection()
     {
@@ -151,7 +164,7 @@ public class GameManager : MonoBehaviour
         Destroy(_cubeFactory.currentCube.GetComponent<MoveCube>());
         FindAnyObjectByType<ButtonController>().enabled = false;
         _cubeFactory.currentCube.AddComponent<Rigidbody>().useGravity = enabled;
-
+        gameOverMenu.SetActive(true);
     }
   
 }

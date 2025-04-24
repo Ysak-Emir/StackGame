@@ -11,6 +11,7 @@ namespace Scritps
     {
         [SerializeField] public GameObject mainCube;
         [SerializeField] private MoveCube moveCube;
+        [SerializeField] private GameObject staticCube;
         [HideInInspector] public GameObject currentCube;
         [HideInInspector] public GameObject nextCube;
         [HideInInspector] public GameObject fallCube;
@@ -21,17 +22,35 @@ namespace Scritps
         public Vector3 randomSpawn;
         Vector3[] spawns;
         public Vector3 randomSpawnZ, randomSpawnX;
+        
+        [Header("Rainbow Settings")]
+        [SerializeField] private bool useRainbowColors = true;
+        [SerializeField] [Range(0, 1)] private float hueShiftPerCube = 0.05f;
+        [SerializeField] [Range(0, 1)] private float saturation = 1.0f;
+        [SerializeField] [Range(0, 1)] private float value = 1.0f;
+        private float currentHue = 0f;
+        [SerializeField] private bool randomizeStartHue = false;
+        [SerializeField] [Range(0, 1)] private float initialHue = 0f;
 
 
         public void InitFactory()
         {
+            GameManager.Instance.RaiseY();
             _random = new Random();
             randomSpawnX = GameManager.Instance.spawnPointX.transform.position;
             randomSpawnZ = GameManager.Instance.spawnPointZ.transform.position;
             spawns = new Vector3[] { randomSpawnX, randomSpawnZ };
             randomSpawn = spawns[_random.Next(spawns.Length)];
 
+            // GameManager.Instance.RaiseY();
             CreateFirstCube(GameManager.Instance.OriginalNextCubePrefab);
+
+            nextCube = currentCube;
+            
+            if (randomizeStartHue)
+                currentHue = UnityEngine.Random.value; // Случайный стартовый оттенок
+            else
+                currentHue = initialHue;
         }
         
         public void FinalizeCubesAfterCut(Transform cubesContainer, ref int staticCubeCounter, ref GameObject nextCube)
@@ -48,6 +67,8 @@ namespace Scritps
             staticCubeCounter++;
             
             Destroy(currentCube);
+            // GameManager.Instance.RaiseY();
+            CreateNextCube();
         }
 
         public GameObject CreateNextCube()
@@ -63,17 +84,22 @@ namespace Scritps
             {
                 spawnPosition = randomSpawnZ;
             }
-
+            
             currentCube = CreateCube(nextCube, spawnPosition);
             currentCube.name = "current cube";
             
             currentCube.GetComponent<MoveCube>().enabled = true;
             if (GameManager.Instance.currentMoving == MoveDirection.X)
-                
+            {
                 currentCube.GetComponent<MoveCube>().StartMovingX();
-            else if (GameManager.Instance.currentMoving == MoveDirection.Z)
+            }
                 
+            else if (GameManager.Instance.currentMoving == MoveDirection.Z)
+            {
                 currentCube.GetComponent<MoveCube>().StartMovingZ();
+            }
+                
+                
 
             return currentCube;
         }
@@ -92,9 +118,17 @@ namespace Scritps
 
         public GameObject CreateFirstCube(GameObject sourceCube)
         {
+            
             Debug.Log("Создан самый первый куб");
             currentCube = CreateCube(sourceCube, randomSpawn);
-
+            
+            Color newColor = Color.HSVToRGB(currentHue, saturation, value);
+            Renderer renderer = mainCube.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                renderer.material.color = newColor;
+            }
+            
             currentCube.AddComponent<MoveCube>();
             
             if (randomSpawn == randomSpawnX)
@@ -114,19 +148,42 @@ namespace Scritps
             return currentCube;
         }
 
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                Destroy(currentCube);
-            }
-        }
+        // private void Update()
+        // {
+        //     if (Input.GetKeyDown(KeyCode.Space))
+        //     {
+        //         Destroy(currentCube);
+        //     }
+        // }
 
 
         public GameObject CreateCube(GameObject obj, Vector3 pos)
         {
-            var cube = Instantiate(obj, pos, quaternion.identity);
+            GameObject cube = Instantiate(obj, pos, Quaternion.identity);
+            
+            if (useRainbowColors)
+            {
+                ApplyRainbowColor(cube);
+            }
+            
             return cube;
+        }
+        
+        private void ApplyRainbowColor(GameObject cube)
+        {
+            // Получаем текущий цвет в HSV и сдвигаем оттенок
+            Color newColor = Color.HSVToRGB(currentHue, saturation, value);
+            
+            // Применяем цвет к материалу куба
+            Renderer renderer = cube.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                renderer.material.color = newColor;
+            }
+            
+            // Сдвигаем оттенок для следующего куба
+            currentHue = (currentHue + hueShiftPerCube) % 1.0f;
+            
         }
     }
 }

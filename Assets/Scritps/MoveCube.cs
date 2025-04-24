@@ -19,8 +19,8 @@ public class MoveCube : MonoBehaviour
     
     public bool _isMovingX = false;
     
-    public bool _isMovingZ = false; 
-    
+    public bool _isMovingZ = false;
+    private Rigidbody rb;
 
     public void Start()
     {
@@ -35,7 +35,8 @@ public class MoveCube : MonoBehaviour
         _directionX = new Vector2(_speedX, 0);
         _directionY = new Vector2(0, -_speedY);
         _directionZ = new Vector3(0, 0, _speedZ);
-        
+
+        rb = GetComponent<Rigidbody>();
     }
     
     private void Update()
@@ -75,6 +76,7 @@ public class MoveCube : MonoBehaviour
 
     private void MoveX()
     {
+        // rb.AddForce(_directionX * (_speedX * Time.deltaTime));
         transform.Translate(_directionX * (_speedX * Time.deltaTime));
     }
 
@@ -85,6 +87,7 @@ public class MoveCube : MonoBehaviour
 
     private void MoveZ()
     {
+        // rb.AddForce(_directionZ * (_speedZ * Time.deltaTime));
         transform.Translate(_directionZ * (_speedZ * Time.deltaTime));
     }
 

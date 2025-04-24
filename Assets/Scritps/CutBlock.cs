@@ -31,26 +31,29 @@ namespace Scritps
         {
             cameraFollow = FindObjectOfType<CameraFollow>();
             cubesContainer = new GameObject("StaticCubes");
-            GameManager.Instance.RaiseY();
+            // GameManager.Instance.RaiseY();
         }
 
 
         public void GetCut()
         {
+            
             if (PerfectSection())
             {
+                GameManager.Instance.AddPoints(3);
                 cameraFollow.StartCamera();
                 GameManager.Instance.RaiseY();
-                _cubeFactory.CreateNextCube();
+                // Не нужно вызывать CreateNextCube() здесь, так как это уже делается в PerfectSection
                 AlignCurrentCubePosition();
             }
             else
             {
                 if (Cut())
                 {
+                    GameManager.Instance.AddPoints(1);
                     cameraFollow.StartCamera();
-                    GameManager.Instance.RaiseY();
-                    _cubeFactory.CreateNextCube();
+                    GameManager.Instance.RaiseY();  
+                    // _cubeFactory.CreateNextCube() уже вызывается внутри _cubeFactory.FinalizeCubesAfterCut()
                     AlignCurrentCubePosition();
                 }
             }
@@ -93,22 +96,25 @@ namespace Scritps
                     _cubeFactory.CreateStaticCube();
                     _cubeFactory.CreateFallingCube();
 
-                    _cubeFactory.newCube.transform.localScale = new Vector3(Mathf.Abs(minMain.x) + maxCurrent.x,
+                    _cubeFactory.newCube.transform.localScale = new Vector3(maxCurrent.x - minMain.x,
                         _cubeFactory.newCube.transform.localScale.y, _cubeFactory.newCube.transform.localScale.z);
 
                     _cubeFactory.newCube.transform.position = new Vector3((minMain.x + maxCurrent.x) / 2f,
                         _cubeFactory.newCube.transform.position.y, _cubeFactory.newCube.transform.position.z);
 
-                    _cubeFactory.fallCube.transform.localScale = new Vector3((Mathf.Abs(minMain.x) + minCurrent.x),
+                    _cubeFactory.fallCube.transform.localScale = new Vector3(minCurrent.x - minMain.x,
                         _cubeFactory.fallCube.transform.localScale.y, _cubeFactory.fallCube.transform.localScale.z);
 
                     _cubeFactory.fallCube.transform.position = new Vector3((minMain.x + minCurrent.x) / 2f,
                         _cubeFactory.fallCube.transform.position.y,
                         _cubeFactory.fallCube.transform.position.z);
 
+                    // Добавляем созданный fallCube в список для отслеживания
+                    fallCubes.Add(_cubeFactory.fallCube);
+
                     _cubeFactory.FinalizeCubesAfterCut(cubesContainer.transform, ref staticCubeCounter,
                         ref _cubeFactory.nextCube);
-
+                  
                     return true;
                 }
                 else if (minCurrent.x > minMain.x && maxMain.x > minCurrent.x)
@@ -118,17 +124,20 @@ namespace Scritps
                     _cubeFactory.CreateStaticCube();
                     _cubeFactory.CreateFallingCube();
 
-                    _cubeFactory.newCube.transform.localScale = new Vector3(maxMain.x + Mathf.Abs(minCurrent.x),
+                    _cubeFactory.newCube.transform.localScale = new Vector3(maxMain.x - minCurrent.x,
                         _cubeFactory.newCube.transform.localScale.y, _cubeFactory.newCube.transform.localScale.z);
 
                     _cubeFactory.newCube.transform.position = new Vector3((maxMain.x + minCurrent.x) / 2f,
                         _cubeFactory.newCube.transform.position.y, _cubeFactory.newCube.transform.position.z);
 
-                    _cubeFactory.fallCube.transform.localScale = new Vector3(Mathf.Abs(-maxMain.x) + -maxCurrent.x,
+                    _cubeFactory.fallCube.transform.localScale = new Vector3(maxCurrent.x - maxMain.x,
                         _cubeFactory.fallCube.transform.localScale.y, _cubeFactory.fallCube.transform.localScale.z);
 
                     _cubeFactory.fallCube.transform.position = new Vector3((maxCurrent.x + maxMain.x) / 2f,
                         _cubeFactory.fallCube.transform.position.y, _cubeFactory.fallCube.transform.position.z);
+
+                    // Добавляем созданный fallCube в список для отслеживания
+                    fallCubes.Add(_cubeFactory.fallCube);
 
                     _cubeFactory.FinalizeCubesAfterCut(cubesContainer.transform, ref staticCubeCounter,
                         ref _cubeFactory.nextCube);
@@ -153,17 +162,20 @@ namespace Scritps
                     _cubeFactory.CreateFallingCube();
 
                     _cubeFactory.newCube.transform.localScale = new Vector3(_cubeFactory.newCube.transform.localScale.x,
-                        _cubeFactory.newCube.transform.localScale.y, Mathf.Abs(minMain.z) + maxCurrent.z);
+                        _cubeFactory.newCube.transform.localScale.y, maxCurrent.z - minMain.z);
 
                     _cubeFactory.newCube.transform.position = new Vector3(_cubeFactory.newCube.transform.position.x,
                         _cubeFactory.newCube.transform.position.y, (minMain.z + maxCurrent.z) / 2);
 
                     _cubeFactory.fallCube.transform.localScale = new Vector3(
                         _cubeFactory.fallCube.transform.localScale.x, _cubeFactory.fallCube.transform.localScale.y,
-                        Mathf.Abs(minMain.z) + minCurrent.z);
+                        minCurrent.z - minMain.z);
 
                     _cubeFactory.fallCube.transform.position = new Vector3(_cubeFactory.fallCube.transform.position.x,
                         _cubeFactory.fallCube.transform.position.y, (minMain.z + minCurrent.z) / 2);
+
+                    // Добавляем созданный fallCube в список для отслеживания
+                    fallCubes.Add(_cubeFactory.fallCube);
 
                     _cubeFactory.FinalizeCubesAfterCut(cubesContainer.transform, ref staticCubeCounter,
                         ref _cubeFactory.nextCube);
@@ -178,17 +190,20 @@ namespace Scritps
                     _cubeFactory.CreateFallingCube();
 
                     _cubeFactory.newCube.transform.localScale = new Vector3(_cubeFactory.newCube.transform.localScale.x,
-                        _cubeFactory.newCube.transform.localScale.y, maxMain.z + Mathf.Abs(minCurrent.z));
+                        _cubeFactory.newCube.transform.localScale.y, maxMain.z - minCurrent.z);
 
                     _cubeFactory.newCube.transform.position = new Vector3(_cubeFactory.newCube.transform.position.x,
                         _cubeFactory.newCube.transform.position.y, (maxMain.z + minCurrent.z) / 2f);
 
                     _cubeFactory.fallCube.transform.localScale = new Vector3(
                         _cubeFactory.fallCube.transform.localScale.x, _cubeFactory.fallCube.transform.localScale.y,
-                        Mathf.Abs(-maxMain.z) + -maxCurrent.z);
+                        maxCurrent.z - maxMain.z);
 
                     _cubeFactory.fallCube.transform.position = new Vector3(_cubeFactory.fallCube.transform.position.x,
                         _cubeFactory.fallCube.transform.position.y, (maxCurrent.z + maxMain.z) / 2f);
+
+                    // Добавляем созданный fallCube в список для отслеживания
+                    fallCubes.Add(_cubeFactory.fallCube);
 
                     _cubeFactory.FinalizeCubesAfterCut(cubesContainer.transform, ref staticCubeCounter,
                         ref _cubeFactory.nextCube);
@@ -216,6 +231,7 @@ namespace Scritps
                 Debug.LogWarning("Some required objects are null in PerfectSection()");
                 return false;
             }
+            // GameManager.Instance.RaiseY();
 
             if (GameManager.Instance.currentMoving == MoveDirection.X)
             {
@@ -228,15 +244,27 @@ namespace Scritps
                     if (_cubeFactory.currentCube.GetComponent<MoveCube>() != null)
                         _cubeFactory.currentCube.GetComponent<MoveCube>().enabled = false;
                     
+                    // Точное выравнивание положения
                     var vector3 = _cubeFactory.currentCube.transform.position;
                     vector3.x = _cubeFactory.mainCube.transform.position.x;
                     _cubeFactory.currentCube.transform.position = vector3;
                     
+                    // Сохраняем текущий размер куба перед присвоением
+                    Vector3 currentSize = _cubeFactory.currentCube.transform.localScale;
+                    
+                    // Переименовываем текущий куб и добавляем его в контейнер
+                    GameObject oldCube = _cubeFactory.mainCube;
                     _cubeFactory.mainCube = _cubeFactory.currentCube;
                     _cubeFactory.mainCube.name = "StaticCube_" + staticCubeCounter;
                     staticCubeCounter++;
                     _cubeFactory.mainCube.transform.SetParent(cubesContainer.transform);
-
+                    
+                    // Создаем следующий куб с правильным размером
+                    _cubeFactory.CreateNextCube();
+                    
+                    // Убедимся, что следующий куб имеет тот же размер, что и текущий
+                    _cubeFactory.currentCube.transform.localScale = currentSize;
+                    
                     isPerfect = true;
                 }
             }
@@ -251,20 +279,54 @@ namespace Scritps
                     if (_cubeFactory.currentCube.GetComponent<MoveCube>() != null)
                         _cubeFactory.currentCube.GetComponent<MoveCube>().enabled = false;
                     
+                    // Точное выравнивание положения
                     var vector3 = _cubeFactory.currentCube.transform.position;
                     vector3.z = _cubeFactory.mainCube.transform.position.z;
                     _cubeFactory.currentCube.transform.position = vector3;
                     
+                    // Сохраняем текущий размер куба перед присвоением
+                    Vector3 currentSize = _cubeFactory.currentCube.transform.localScale;
+                    
+                    // Переименовываем текущий куб и добавляем его в контейнер
+                    GameObject oldCube = _cubeFactory.mainCube;
                     _cubeFactory.mainCube = _cubeFactory.currentCube;
                     _cubeFactory.mainCube.name = "StaticCube_" + staticCubeCounter;
                     staticCubeCounter++;
                     _cubeFactory.mainCube.transform.SetParent(cubesContainer.transform);
-
+                    // GameManager.Instance.RaiseY();
+                    // Создаем следующий куб с правильным размером
+                    // GameManager.Instance.RaiseY();
+                    _cubeFactory.CreateNextCube();
+                    
+                    // Убедимся, что следующий куб имеет тот же размер, что и текущий
+                    _cubeFactory.currentCube.transform.localScale = currentSize;
+                    
                     isPerfect = true;
                 }
             }
 
             return isPerfect;
         }
+        
+        // Метод для очистки падающих блоков через определенное время
+        // private void CleanupFallCubes()
+        // {
+        //     foreach(GameObject fallCube in fallCubes)
+        //     {
+        //         if (fallCube != null && fallCube.transform.position.y < -10f)
+        //         {
+        //             Destroy(fallCube);
+        //         }
+        //     }
+        //     
+        //     // Очищаем список от уничтоженных объектов
+        //     fallCubes.RemoveAll(cube => cube == null);
+        // }
+        //
+        // private void Update()
+        // {
+        //     // Периодически очищаем упавшие кубы
+        //     CleanupFallCubes();
+        // }
     }
 }
