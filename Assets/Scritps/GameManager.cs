@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using Scritps;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 using Random = System.Random;
@@ -8,12 +9,8 @@ using Random = System.Random;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-    private float score = 0;
-    
-    [SerializeField] private GameObject mainCubePrefab;
-
-    [SerializeField] private GameObject nextCubePrefab;
-
+    public bool start;
+    [SerializeField] public GameObject triggerDetectCube;
     [SerializeField] public GameObject spawnPointX;
     [SerializeField] public GameObject spawnPointZ;
     [SerializeField] public GameObject upPointY;
@@ -21,11 +18,24 @@ public class GameManager : MonoBehaviour
     [SerializeField] [Range(0, 3)] public float speedX = 1f;
     [SerializeField] [Range(0, 3)] public float speedY = 1f;
     [SerializeField] [Range(0, 3)] public float speedZ = 1f;
-    
+    private float score = 0;
+    [SerializeField] private GameObject mainCubePrefab;
+    [SerializeField] private GameObject nextCubePrefab;
+
+
     private GameObject _createdStartNextCube;
     private GameObject _createdStartMainCube;
 
-    
+
+    [SerializeField] private CutBlock _cutBlock;
+    [SerializeField] private MoveCube _moveCube;
+    [SerializeField] private CubeFactory _cubeFactory;
+
+    // private void test()
+    // {
+    //     _cutBlock._moveCube.StopFullMoving();
+    // }
+    //
 
     private void Awake()
     {
@@ -49,9 +59,50 @@ public class GameManager : MonoBehaviour
         }
 
         Debug.Log($"{mainCubePrefab.name} префаб найден!");
-
+        if (!triggerDetectCube)
+        {
+            Debug.LogError("Триггер куба нет, привяжи");
+        }
+        else
+        {
+            triggerDetectCube = Instantiate(triggerDetectCube, Vector3.zero, quaternion.identity);
+        }
         
+        // _cubeFactory.CreateFirstCube(GameManager.Instance.OriginalNextCubePrefab);
+        triggerDetectCube.transform.position = new Vector3(0, -15, 0);
+        triggerDetectCube.transform.localScale = new Vector3(20, 5, 20);
+        if (triggerDetectCube.GetComponent<BoxCollider>())
+            triggerDetectCube.GetComponent<BoxCollider>().enabled = true;
+        
+        triggerDetectCube.GetComponent<BoxCollider>().isTrigger = true;
+
+        if (triggerDetectCube.GetComponent<MeshRenderer>())
+            triggerDetectCube.GetComponent<MeshRenderer>().enabled = false;
+
+        triggerDetectCube.AddComponent<TriggerDetect>();
+        
+        _cubeFactory.InitFactory();
+
+        _cubeFactory.CreateFirstCube(OriginalNextCubePrefab);
+        
+        _moveCube.InitMoveCube();
+
     }
+    
+    public void RaiseY(float amount = 0.1f)
+    {
+        Vector3 delta = new Vector3(0, amount, 0);
+
+        if (triggerDetectCube != null) 
+            triggerDetectCube.transform.position += delta;
+        if (spawnPointX != null) 
+            spawnPointX.transform.position += delta;
+        if (spawnPointZ != null) 
+            spawnPointZ.transform.position += delta;
+        if (upPointY != null) 
+            upPointY.transform.position += delta;
+    }
+
 
     public GameObject CreateCube(GameObject cubePrefab, Vector3 position)
     {
@@ -60,24 +111,7 @@ public class GameManager : MonoBehaviour
         cube.AddComponent<MoveCube>();
         return cube;
     }
-
-    private void IsClick()
-    {
-        
-    }
-
-    public GameObject CreatedNextCube
-    {
-        get => _createdStartNextCube;
-        set => _createdStartNextCube = value;
-    }
-
-    public GameObject CreatedMainCube
-    {
-        get => _createdStartMainCube;
-        set => _createdStartMainCube = value;
-    }
-
+    
     public GameObject OriginalNextCubePrefab
     {
         get => nextCubePrefab;
@@ -92,7 +126,8 @@ public class GameManager : MonoBehaviour
 
     public void GameOver()
     {
-        CutBlock.Instance._moveCube.StopFullMoving();
+        _moveCube.StopFullMoving();
+        
     }
   
 }

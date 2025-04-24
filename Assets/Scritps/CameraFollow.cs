@@ -2,35 +2,34 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    private Camera _camera;
-    private bool _isMovingUp = false;
-    private float _targetY;
-    private float _moveSpeed = 1f; // скорость подъема
+    [SerializeField] private Camera _camera;
+    private Vector3 _targetPosition;
+    private float _moveSpeed = 1f;
+    private bool _isMoving = false;
 
     void Start()
     {
-        _camera = Camera.main; // или GetComponent<Camera>() если скрипт на камере
+        _camera = Camera.main;
+        _targetPosition = _camera.transform.position + new Vector3(0, 0.1f, 0);
     }
-
+    
     void Update()
     {
-        if (_isMovingUp)
+        if (_isMoving)
         {
-            Vector3 currentPosition = _camera.transform.position;
-            float newY = Mathf.MoveTowards(currentPosition.y, _targetY, _moveSpeed * Time.deltaTime);
-            _camera.transform.position = new Vector3(currentPosition.x, newY, currentPosition.z);
-
-            if (Mathf.Approximately(newY, _targetY))
-            {
-                _isMovingUp = false;
-            }
+            CameraUp();
         }
     }
 
-    public void CameraUp()
+    private void CameraUp()
     {
-        _targetY = _camera.transform.position.y + 0.1f;
-        _isMovingUp = true;
+        _camera.transform.position = Vector3.MoveTowards(_camera.transform.position, _targetPosition, _moveSpeed * Time.deltaTime);
     }
-}
 
+    public void StartCamera()
+    {
+        _isMoving = true;
+        _targetPosition += new Vector3(0, 0.1f, 0);
+    }
+    
+}

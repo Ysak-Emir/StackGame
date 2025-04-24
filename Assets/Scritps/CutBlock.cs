@@ -12,135 +12,131 @@ namespace Scritps
     public class CutBlock : MonoBehaviour
     {
         public static CutBlock Instance { get; private set; }
+        [SerializeField] public MoveCube _moveCube;
+        [SerializeField] private CubeFactory _cubeFactory;
+        private GameManager _gameManager;
 
-        [SerializeField] private Camera _camera;
+        // [SerializeField] private Camera _camera;
+        [SerializeField] private CameraFollow cameraFollow;
 
         private Random _random;
-        private GameObject currentCube;
-        private GameObject mainCube;
+        // private GameObject currentCube;
+        [SerializeField] private GameObject mainCube; //главный куб на сцене который
         private GameObject nextCube;
 
-        private Vector3 randomSpawn;
-        Vector3[] spawns;
-        private Vector3 z, x;
+        // private Vector3 randomSpawn;
+        // Vector3[] spawns;
+        // private Vector3 z, x;
+
+        [SerializeField] [Tooltip("Погрешность для идеального совпадения кубов")]
         private float tolerance = 0.05f;
-        public MoveCube _moveCube;
+        
+        public GameObject newCube;
+        public GameObject fallCube;
+        List<GameObject> fallCubes = new List<GameObject>();
 
 
-        public enum MoveDirection
-        {
-            X,
-            Z
-        }
+        // private CubeFactory _cubeFactory;
 
-        private MoveDirection currentMoving;
-        private Queue<MoveDirection> moveSequence;
+        // public enum MoveDirection
+        // {
+        //     X,
+        //     Z
+        // }
+        //
+        // private MoveDirection currentMoving;
+        // private Queue<MoveDirection> moveSequence;
+
+        private GameObject cubesContainer;
+        private int staticCubeCounter = 0;
+        
 
         private void Start()
         {
-            moveSequence = new Queue<MoveDirection>();
-            moveSequence.Enqueue(MoveDirection.Z);
-            moveSequence.Enqueue(MoveDirection.X);
+            cameraFollow = FindObjectOfType<CameraFollow>();
+            _cubeFactory.Initialize();
 
-            AddY();
+            cubesContainer = new GameObject("StaticCubes");
+
+            GameManager.Instance.RaiseY();
+
             _random = new Random();
-            x = GameManager.Instance.spawnPointX.transform.position;
-            z = GameManager.Instance.spawnPointZ.transform.position;
-            spawns = new Vector3[] { x, z };
-            randomSpawn = spawns[_random.Next(spawns.Length)];
-            nextCube = GameManager.Instance.OriginalNextCubePrefab;
-            mainCube = Instantiate(GameManager.Instance.OriginalMainCubePrefab);
-            currentCube = Instantiate(GameManager.Instance.OriginalNextCubePrefab, randomSpawn, quaternion.identity);
-            _moveCube = currentCube.AddComponent<MoveCube>();
-            if (randomSpawn == x)
+            // spawns = new Vector3[] { x, z };
+            // randomSpawn = spawns[_random.Next(spawns.Length)];
+            // nextCube = GameManager.Instance.OriginalNextCubePrefab;
+            // currentCube = Instantiate(GameManager.Instance.OriginalNextCubePrefab, randomSpawn, quaternion.identity);
+            // _cubeFactory.CreateFirstCube(GameManager.Instance.OriginalNextCubePrefab);
+
+            // _moveCube = currentCube.AddComponent<MoveCube>();
+            // if (randomSpawn == x)
+            // {
+            //     _moveCube.StartMovingX();
+            //     _cubeFactory.currentMoving = MoveDirection.X;
+            // }
+            // else if (randomSpawn == z)
+            // {
+            //     _moveCube.StartMovingZ();
+            //     _cubeFactory.currentMoving = MoveDirection.Z;
+            // }
+            // else
+            // {
+            //     Debug.Log("AZAZAZA");
+            // }
+
+        }
+
+        
+        
+        public void GetCut()
+        {
+            if (PerfectSection())
             {
-                _moveCube.StartMovingX();
-                currentMoving = MoveDirection.X;
-            }
-            else if (randomSpawn == z)
-            {
-                _moveCube.StartMovingZ();
-                currentMoving = MoveDirection.Z;
+                cameraFollow.StartCamera();
+                GameManager.Instance.RaiseY();
+                _cubeFactory.CreateNextCube();
+                AlignCurrentCubePosition();
             }
             else
             {
-                Debug.Log("AZAZAZA");
+                if (Cut())
+                {
+                    cameraFollow.StartCamera();
+                    GameManager.Instance.RaiseY();
+                    _cubeFactory.CreateNextCube();
+                    AlignCurrentCubePosition();
+                }
             }
-        }
-
-        private void AddY()
-        {
-            GameManager.Instance.spawnPointX.transform.position += new Vector3(0, 0.1f, 0);
-            GameManager.Instance.spawnPointZ.transform.position += new Vector3(0, 0.1f, 0);
-            GameManager.Instance.upPointY.transform.position += new Vector3(0, 0.1f, 0);
-            x = GameManager.Instance.spawnPointX.transform.position;
-            z = GameManager.Instance.spawnPointZ.transform.position;
-            var vector3 = _camera.transform.position;
-            vector3.y = vector3.y + 0.1f;
-            _camera.transform.position = vector3;
         }
         
-
-        private void Update()
+        private void AlignCurrentCubePosition()
         {
-            if (Input.GetKeyDown(KeyCode.Space))
+            var position = _cubeFactory.currentCube.transform.position;
+
+            if (_moveCube.currentMoving == MoveDirection.Z)
             {
-                Debug.Log($"currentcube - {currentCube.transform.position}");
-                Debug.Log($"maincube -{mainCube.transform.position}");
-
-                if (PerfectSection())
-                {
-                    AddY();
-                    CreateNextCube();
-                    if (currentMoving == MoveDirection.Z)
-
-                    {
-                        var vector3 = currentCube.transform.position;
-                        vector3.x = mainCube.transform.position.x;
-                        currentCube.transform.position = vector3;
-                    }
-                    else
-                    {
-                        var vector3 = currentCube.transform.position;
-                        vector3.z = mainCube.transform.position.z;
-                        currentCube.transform.position = vector3;
-                    }
-                }
-                else
-                {
-                    if (Cut())
-                    {
-                        AddY();
-                        CreateNextCube();
-                        if (currentMoving == MoveDirection.Z)
-                        {
-                            var vector3 = currentCube.transform.position;
-                            vector3.x = mainCube.transform.position.x;
-                            currentCube.transform.position = vector3;
-                        }
-                        else
-                        {
-                            var vector3 = currentCube.transform.position;
-                            vector3.z = mainCube.transform.position.z;
-                            currentCube.transform.position = vector3;
-                        }
-                    }
-                }
+                position.x = mainCube.transform.position.x;
             }
+            else
+            {
+                position.z = mainCube.transform.position.z;
+            }
+
+            _cubeFactory.currentCube.transform.position = position;
         }
 
-        public MoveDirection GetNextDirection()
-        {
-            MoveDirection direction = moveSequence.Dequeue();
-            moveSequence.Enqueue(direction);
-            return direction;
-        }
+
+        // public MoveDirection GetNextDirection()
+        // {
+        //     MoveDirection direction = moveSequence.Dequeue();
+        //     moveSequence.Enqueue(direction);
+        //     return direction;
+        // }
 
         private bool Cut()
         {
-            Vector3 pointCurrentCube = currentCube.transform.position;
+            Vector3 pointCurrentCube = _cubeFactory.currentCube.transform.position;
             Vector3 pointMainCube = mainCube.transform.position;
-            Vector3 sizeCurrentCube = currentCube.transform.localScale / 2;
+            Vector3 sizeCurrentCube = _cubeFactory.currentCube.transform.localScale / 2;
             Vector3 sizeMainCube = mainCube.transform.localScale / 2;
 
             // Границы currentCube
@@ -151,17 +147,15 @@ namespace Scritps
             Vector3 minMain = pointMainCube - sizeMainCube;
             Vector3 maxMain = pointMainCube + sizeMainCube;
 
-
-            if (currentMoving == MoveDirection.X)
+            if (_moveCube.currentMoving == MoveDirection.X)
             {
+                
                 if (maxCurrent.x > minMain.x && maxCurrent.x < maxMain.x)
                 {
                     Destroy(_moveCube);
                     Debug.Log("Кубы  пересекаются! ПО XXX ++++++");
-                    GameObject newCube;
-
-                    newCube = Instantiate(currentCube, currentCube.transform.position,
-                        quaternion.identity);
+                    _cubeFactory.CreateStaticCube();
+                    _cubeFactory.CreateFallingCube();
 
                     float newScale = Mathf.Abs(minMain.x) + maxCurrent.x;
                     var scale = newCube.transform.localScale;
@@ -173,10 +167,28 @@ namespace Scritps
                     position.x = newPosition / 2;
                     newCube.transform.position = position;
 
+                    float newScaleFall = Mathf.Abs(minMain.x) + minCurrent.x;
+                    var scaleFall = fallCube.transform.localScale;
+                    scaleFall.x = newScaleFall;
+                    fallCube.transform.localScale = scaleFall;
+
+                    float newPositionFall = minMain.x + minCurrent.x;
+                    var positionFall = fallCube.transform.position;
+                    positionFall.x = newPositionFall / 2;
+                    fallCube.transform.position = positionFall;
+
+                    fallCube.AddComponent<Rigidbody>().useGravity = true;
+                    fallCubes.Add(fallCube);
+                    fallCube.name = "FallingCube_" + staticCubeCounter;
+                    fallCube.transform.SetParent(cubesContainer.transform);
+
                     mainCube = newCube;
+                    mainCube.name = "StaticCube_" + staticCubeCounter;
+                    staticCubeCounter++;
+                    mainCube.transform.SetParent(cubesContainer.transform);
                     nextCube = newCube;
 
-                    Destroy(currentCube);
+                    Destroy(_cubeFactory.currentCube);
 
                     return true;
                 }
@@ -184,10 +196,8 @@ namespace Scritps
                 {
                     Destroy(_moveCube);
                     Debug.Log("Кубы  пересекаются! ПО XXX -----");
-                    GameObject newCube;
-
-                    newCube = Instantiate(currentCube, currentCube.transform.position,
-                        quaternion.identity);
+                    _cubeFactory.CreateStaticCube();
+                    _cubeFactory.CreateFallingCube();
 
                     float newScale = maxMain.x + Mathf.Abs(minCurrent.x);
                     var scale = newCube.transform.localScale;
@@ -199,10 +209,28 @@ namespace Scritps
                     position.x = newPosition / 2;
                     newCube.transform.position = position;
 
-                    mainCube = newCube;
-                    nextCube = newCube;
+                    float newScaleFall = Mathf.Abs(-maxMain.x) + -maxCurrent.x;
+                    var scaleFall = fallCube.transform.localScale;
+                    scaleFall.x = newScaleFall;
+                    fallCube.transform.localScale = scaleFall;
 
-                    Destroy(currentCube);
+                    float newPositionFall = maxCurrent.x + maxMain.x;
+                    var positionFall = fallCube.transform.position;
+                    positionFall.x = newPositionFall / 2;
+                    fallCube.transform.position = positionFall;
+
+                    fallCube.AddComponent<Rigidbody>().useGravity = true;
+                    fallCubes.Add(fallCube);
+
+                    mainCube = newCube;
+                    mainCube.name = "StaticCube_" + staticCubeCounter;
+                    staticCubeCounter++;
+                    mainCube.transform.SetParent(cubesContainer.transform);
+                    nextCube = newCube;
+                    fallCube.name = "FallingCube_" + staticCubeCounter;
+                    fallCube.transform.SetParent(cubesContainer.transform);
+
+                    Destroy(_cubeFactory.currentCube);
 
                     return true;
                 }
@@ -214,16 +242,16 @@ namespace Scritps
                     return false;
                 }
             }
-            else if (currentMoving == MoveDirection.Z)
+            else if (_moveCube.currentMoving == MoveDirection.Z)
             {
                 if (maxCurrent.z > minMain.z && maxCurrent.z < maxMain.z)
                 {
                     Destroy(_moveCube);
                     Debug.Log("Кубы  пересекаются! ПО ZZZ ++++++");
-                    GameObject newCube;
-
-                    newCube = Instantiate(currentCube, currentCube.transform.position,
-                        quaternion.identity);
+                    // newCube = Instantiate(currentCube, currentCube.transform.position,
+                    //     quaternion.identity);
+                    // fallCube = Instantiate(currentCube, currentCube.transform.position,
+                    //     quaternion.identity);
 
                     float newScale = Mathf.Abs(minMain.z) + maxCurrent.z;
                     var scale = newCube.transform.localScale;
@@ -235,10 +263,28 @@ namespace Scritps
                     position.z = newPosition / 2;
                     newCube.transform.position = position;
 
+                    float newScaleFall = Mathf.Abs(minMain.z) + minCurrent.z;
+                    var scaleFall = fallCube.transform.localScale;
+                    scaleFall.z = newScaleFall;
+                    fallCube.transform.localScale = scaleFall;
+
+                    float newPositionFall = minMain.z + minCurrent.z;
+                    var positionFall = fallCube.transform.position;
+                    positionFall.z = newPositionFall / 2;
+                    fallCube.transform.position = positionFall;
+
+                    fallCube.AddComponent<Rigidbody>().useGravity = true;
+                    fallCubes.Add(fallCube);
+                    fallCube.name = "FallingCube_" + staticCubeCounter;
+                    fallCube.transform.SetParent(cubesContainer.transform);
+
                     mainCube = newCube;
+                    mainCube.name = "StaticCube_" + staticCubeCounter;
+                    staticCubeCounter++;
+                    mainCube.transform.SetParent(cubesContainer.transform);
                     nextCube = newCube;
 
-                    Destroy(currentCube);
+                    // Destroy(currentCube);
 
                     return true;
                 }
@@ -246,7 +292,10 @@ namespace Scritps
                 {
                     Destroy(_moveCube);
                     Debug.Log("Кубы пересекаются! ПО ZZZ -----");
-                    GameObject newCube = Instantiate(currentCube, currentCube.transform.position, quaternion.identity);
+                    // newCube = Instantiate(currentCube, currentCube.transform.position,
+                    //     quaternion.identity);
+                    // fallCube = Instantiate(currentCube, currentCube.transform.position,
+                    //     quaternion.identity);
 
                     float newScale = maxMain.z + Mathf.Abs(minCurrent.z);
                     var scale = newCube.transform.localScale;
@@ -258,10 +307,28 @@ namespace Scritps
                     position.z = newPosition / 2;
                     newCube.transform.position = position;
 
+                    float newScaleFall = Mathf.Abs(-maxMain.z) + -maxCurrent.z;
+                    var scaleFall = fallCube.transform.localScale;
+                    scaleFall.z = newScaleFall;
+                    fallCube.transform.localScale = scaleFall;
+
+                    float newPositionFall = maxCurrent.z + maxMain.z;
+                    var positionFall = fallCube.transform.position;
+                    positionFall.z = newPositionFall / 2;
+                    fallCube.transform.position = positionFall;
+
+                    fallCube.AddComponent<Rigidbody>().useGravity = true;
+                    fallCubes.Add(fallCube);
+                    fallCube.name = "FallingCube_" + staticCubeCounter;
+                    fallCube.transform.SetParent(cubesContainer.transform);
+
                     mainCube = newCube;
+                    mainCube.name = "StaticCube_" + staticCubeCounter;
+                    staticCubeCounter++;
+                    mainCube.transform.SetParent(cubesContainer.transform);
                     nextCube = newCube;
 
-                    Destroy(currentCube);
+                    // Destroy(currentCube);
                     return true;
                 }
                 else
@@ -281,35 +348,41 @@ namespace Scritps
         {
             bool isPerfect = false;
 
-            if (currentMoving == MoveDirection.X)
+            if (_moveCube.currentMoving == MoveDirection.X)
             {
-                if (Mathf.Abs(currentCube.transform.position.x - mainCube.transform.position.x) <= tolerance)
+                if (Mathf.Abs(_cubeFactory.currentCube.transform.position.x - mainCube.transform.position.x) <= tolerance)
                 {
                     Debug.Log("PERFECT!!! XXX");
                     Destroy(_moveCube);
 
-                    var vector3 = currentCube.transform.position;
+                    var vector3 = _cubeFactory.currentCube.transform.position;
                     vector3.x = mainCube.transform.position.x;
-                    currentCube.transform.position = vector3;
+                    _cubeFactory.currentCube.transform.position = vector3;
 
-                    mainCube = currentCube;
+                    mainCube = _cubeFactory.currentCube;
+                    mainCube.name = "StaticCube_" + staticCubeCounter;
+                    staticCubeCounter++;
+                    mainCube.transform.SetParent(cubesContainer.transform);
 
                     isPerfect = true;
                 }
             }
             else
             {
-                if (Mathf.Abs(currentCube.transform.position.z - mainCube.transform.position.z) <= tolerance)
+                if (Mathf.Abs(_cubeFactory.currentCube.transform.position.z - mainCube.transform.position.z) <= tolerance)
                 {
                     Debug.Log("PERFECT!!! ZZZ");
                     Destroy(_moveCube);
-
-                    var vector3 = currentCube.transform.position;
+                
+                    var vector3 = _cubeFactory.currentCube.transform.position;
                     vector3.z = mainCube.transform.position.z;
-                    currentCube.transform.position = vector3;
-
-                    mainCube = currentCube;
-
+                    _cubeFactory.currentCube.transform.position = vector3;
+                
+                    mainCube = _cubeFactory.currentCube;
+                    mainCube.name = "StaticCube_" + staticCubeCounter;
+                    staticCubeCounter++;
+                    mainCube.transform.SetParent(cubesContainer.transform);
+                
                     isPerfect = true;
                 }
             }
@@ -317,34 +390,12 @@ namespace Scritps
             return isPerfect;
         }
 
-        private GameObject CreateNextCube()
-        {
-            currentMoving = GetNextDirection();
+        
 
-            Vector3 spawnPosition;
-            if (currentMoving == MoveDirection.X)
-            {
-                spawnPosition = x;
-            }
-            else
-            {
-                spawnPosition = z;
-            }
-
-            currentCube = Instantiate(nextCube, spawnPosition, Quaternion.identity);
-
-            _moveCube = currentCube.AddComponent<MoveCube>();
-
-            if (currentMoving == MoveDirection.X)
-            {
-                _moveCube.StartMovingX();
-            }
-            else
-            {
-                _moveCube.StartMovingZ();
-            }
-
-            return null;
-        }
+        // private void GameOver()
+        // {
+        //     _moveCube.StopFullMoving();
+        //     currentCube.AddComponent<Rigidbody>();
+        // }
     }
 }
