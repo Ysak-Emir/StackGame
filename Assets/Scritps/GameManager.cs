@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using Scritps;
 using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Random = System.Random;
 
 public class GameManager : MonoBehaviour
@@ -23,17 +25,17 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject nextCubePrefab;
 
 
-    private GameObject _createdStartNextCube;
-    private GameObject _createdStartMainCube;
+    public MoveDirection currentMoving;
+    public Queue<MoveDirection> moveSequence;
 
 
     [SerializeField] private CutBlock _cutBlock;
-    [SerializeField] private MoveCube _moveCube;
+    [SerializeField] private MoveCube moveCube;
     [SerializeField] private CubeFactory _cubeFactory;
 
     // private void test()
     // {
-    //     _cutBlock._moveCube.StopFullMoving();
+    //     _cutBlock.moveCube.StopFullMoving();
     // }
     //
 
@@ -82,10 +84,28 @@ public class GameManager : MonoBehaviour
         triggerDetectCube.AddComponent<TriggerDetect>();
         
         _cubeFactory.InitFactory();
-
-        _cubeFactory.CreateFirstCube(OriginalNextCubePrefab);
         
-        _moveCube.InitMoveCube();
+        moveSequence = new Queue<MoveDirection>();
+        moveSequence.Enqueue(MoveDirection.Z);
+        moveSequence.Enqueue(MoveDirection.X);
+        
+        if (_cubeFactory.randomSpawn == _cubeFactory.randomSpawnX)
+        {
+            // Debug.Log("START MOVING X");
+            // _cubeFactory.currentCube.GetComponent<MoveCube>().StartMovingX();
+            currentMoving = MoveDirection.X;
+        }
+        else if (_cubeFactory.randomSpawn == _cubeFactory.randomSpawnZ)
+        {
+            // Debug.Log("START MOVING Z");
+            // _cubeFactory.currentCube.GetComponent<MoveCube>().StartMovingZ();
+            currentMoving = MoveDirection.Z;
+            
+        }
+        else
+        {
+            Debug.Log("AZAZAZA");
+        }
 
     }
     
@@ -101,15 +121,17 @@ public class GameManager : MonoBehaviour
             spawnPointZ.transform.position += delta;
         if (upPointY != null) 
             upPointY.transform.position += delta;
+        _cubeFactory.randomSpawnX += delta;
+        _cubeFactory.randomSpawnZ += delta;
+        
     }
 
 
-    public GameObject CreateCube(GameObject cubePrefab, Vector3 position)
+    public MoveDirection GetNextDirection()
     {
-        var cube = Instantiate(cubePrefab, position, Quaternion.identity);
-        Debug.Log($"Куб {cubePrefab} создан!");
-        cube.AddComponent<MoveCube>();
-        return cube;
+        MoveDirection direction = moveSequence.Dequeue();
+        moveSequence.Enqueue(direction);
+        return direction;
     }
     
     public GameObject OriginalNextCubePrefab
@@ -126,7 +148,8 @@ public class GameManager : MonoBehaviour
 
     public void GameOver()
     {
-        _moveCube.StopFullMoving();
+        Destroy(_cubeFactory.currentCube.GetComponent<MoveCube>());
+        
         
     }
   

@@ -6,13 +6,6 @@ using Random = System.Random;
 
 public class MoveCube : MonoBehaviour
 {
-    
-    
-    public MoveCube Instance { get; private set; }
-    [SerializeField] private CutBlock _cutBlock;
-    [SerializeField] private CubeFactory _cubeFactory;
-    
-    
     private float _speedX;
     private float _speedY;
     private float _speedZ;
@@ -21,49 +14,19 @@ public class MoveCube : MonoBehaviour
     private Vector3 _directionZ;
     
     
-    public MoveDirection currentMoving;
-    private Queue<MoveDirection> moveSequence;
+    // public MoveDirection currentMoving;
+    // public Queue<MoveDirection> moveSequence;
     
+    public bool _isMovingX = false;
     
-    [SerializeField]private bool _isMovingX = false;
-    public bool IsMovingX => _isMovingX;
+    public bool _isMovingZ = false; 
     
-    [SerializeField]public bool _isMovingZ = false; 
-    public bool IsMovingZ => _isMovingZ;
-    
-    private bool _isMovingY = false;
 
-    public float SpeedY
+    public void Start()
     {
-        get { return _speedY; }
-        private set { _speedY = Mathf.Clamp(value, 0, 3); }
-    }
-
-    public float SpeedX
-    {
-        get {return _speedX; }
-        private set { _speedX = Mathf.Clamp(value, 0, 3); }
-    }
-
-    public float SpeedZ
-    {
-        get { return _speedZ; }
-        private set { _speedZ = Mathf.Clamp(value, 0, 3); }
-    }
-
-    private void Awake()
-    {
-        // _cubeFactory = GetComponent<CubeFactory>();
-        _cutBlock = GetComponent<CutBlock>();
-    }
-
-    public void InitMoveCube()
-    {
-        _cubeFactory = GetComponent<CubeFactory>();
-        
-        moveSequence = new Queue<MoveDirection>();
-        moveSequence.Enqueue(MoveDirection.Z);
-        moveSequence.Enqueue(MoveDirection.X);
+        // moveSequence = new Queue<MoveDirection>();
+        // moveSequence.Enqueue(MoveDirection.Z);
+        // moveSequence.Enqueue(MoveDirection.X);
         
         _speedX = GameManager.Instance.speedX;
         _speedY = GameManager.Instance.speedY;
@@ -73,28 +36,8 @@ public class MoveCube : MonoBehaviour
         _directionY = new Vector2(0, -_speedY);
         _directionZ = new Vector3(0, 0, _speedZ);
         
-        if (_cubeFactory.randomSpawn == GameManager.Instance.spawnPointX.transform.position)
-        {
-            StartMovingX();
-            currentMoving = MoveDirection.X;
-        }
-        else if (_cubeFactory.randomSpawn == GameManager.Instance.spawnPointZ.transform.position)
-        {
-            StartMovingZ();
-            currentMoving = MoveDirection.Z;
-            
-        }
-        else
-        {
-            Debug.Log("AZAZAZA");
-        }
     }
-
-    public void GetRandomSpawnCube()
-    {
-        
-    }
-
+    
     private void Update()
     {
         if (_isMovingX)
@@ -107,23 +50,27 @@ public class MoveCube : MonoBehaviour
         }
     }
     
-    public MoveDirection GetNextDirection()
-    {
-        MoveDirection direction = moveSequence.Dequeue();
-        moveSequence.Enqueue(direction);
-        return direction;
-    }
+    // public MoveDirection GetNextDirection()
+    // {
+    //     MoveDirection direction = moveSequence.Dequeue();
+    //     moveSequence.Enqueue(direction);
+    //     return direction;
+    // }
     
 
     public void StartMovingX()
     {
+        Debug.Log("StartMovingX()");
         _isMovingX = true;
+        _isMovingZ = false;
     }
     
 
     public void StartMovingZ()
     {
+        Debug.Log("StartMovingZ()");
         _isMovingZ = true;
+        _isMovingX = false;
     }
 
     private void MoveX()
