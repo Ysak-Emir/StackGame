@@ -49,12 +49,19 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        // RaiseY();
+        Application.targetFrameRate = 120;
+        QualitySettings.vSyncCount = 0;
     }
 
     private void Update()
     {
-        if (_cubeFactory.currentCube.transform.position.x > 4 || _cubeFactory.currentCube.transform.position.z > 4)
+        if (_cubeFactory.currentCube == null) return; // нет куба — ничего не делаем
+
+        Transform cubeTransform = _cubeFactory.currentCube.transform;
+        if (cubeTransform == null) return; // доп-проверка на всякий случай
+
+        Vector3 pos = cubeTransform.position;
+        if (pos.x > 4f || pos.z > 4f)
         {
             GameOver();
         }
@@ -163,8 +170,11 @@ public class GameManager : MonoBehaviour
     {
         Destroy(_cubeFactory.currentCube.GetComponent<MoveCube>());
         FindAnyObjectByType<ButtonController>().enabled = false;
-        _cubeFactory.currentCube.AddComponent<Rigidbody>().useGravity = enabled;
+        _cubeFactory.currentCube.AddComponent<Rigidbody>().useGravity = true;
+        _cubeFactory.currentCube = null; // очень важно обнулить!
         gameOverMenu.SetActive(true);
+
+        enabled = false; // ОТКЛЮЧАЕМ Update
     }
   
 }

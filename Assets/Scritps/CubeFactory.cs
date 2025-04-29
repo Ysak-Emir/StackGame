@@ -135,11 +135,13 @@ namespace Scritps
             {
                 currentCube.GetComponent<MoveCube>().StartMovingX();
                 GameManager.Instance.currentMoving = MoveDirection.X;
+                GameManager.Instance.RaiseY();
             }
             else if (randomSpawn == randomSpawnZ)
             {
                 currentCube.GetComponent<MoveCube>().StartMovingZ();
                 GameManager.Instance.currentMoving = MoveDirection.Z;
+                GameManager.Instance.RaiseY();
             }
             else
             {

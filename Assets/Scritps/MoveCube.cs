@@ -24,10 +24,6 @@ public class MoveCube : MonoBehaviour
 
     public void Start()
     {
-        // moveSequence = new Queue<MoveDirection>();
-        // moveSequence.Enqueue(MoveDirection.Z);
-        // moveSequence.Enqueue(MoveDirection.X);
-        
         _speedX = GameManager.Instance.speedX;
         _speedY = GameManager.Instance.speedY;
         _speedZ = GameManager.Instance.speedZ;
@@ -50,14 +46,6 @@ public class MoveCube : MonoBehaviour
             MoveZ();
         }
     }
-    
-    // public MoveDirection GetNextDirection()
-    // {
-    //     MoveDirection direction = moveSequence.Dequeue();
-    //     moveSequence.Enqueue(direction);
-    //     return direction;
-    // }
-    
 
     public void StartMovingX()
     {
@@ -79,11 +67,7 @@ public class MoveCube : MonoBehaviour
         // rb.AddForce(_directionX * (_speedX * Time.deltaTime));
         transform.Translate(_directionX * (_speedX * Time.deltaTime));
     }
-
-    private void MoveY()
-    {
-        transform.Translate(_directionY * (_speedY * Time.deltaTime));
-    }
+    
 
     private void MoveZ()
     {
